@@ -21,8 +21,33 @@ class Post(models.Model):
 class Tweet(Post):
     text = models.CharField(max_length=140)
 
+    def get_likes(self):
+        likes = LikeTweet.objects.filter(tweet=self)
+        return likes.count()
+
+    def get_dislikes(self):
+        dislikes = DisLikeTweet.objects.filter(tweet=self)
+        return dislikes.count()
+
 
 class Comment(Post):
     text = models.CharField(max_length=255)
     tweet = models.ForeignKey(Tweet, on_delete=models.CASCADE)
+
+class LikeTweet(models.Model):
+    tweet = models.ForeignKey(Tweet, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('user', 'tweet')
+
+class DisLikeTweet(models.Model):
+    tweet = models.ForeignKey(Tweet, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('user', 'tweet')
+
+
+
 
