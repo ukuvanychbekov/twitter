@@ -78,20 +78,23 @@ class PostTweetLike(APIView):
             data = {'message' : f'tweet {tweet_id} liked by {request.user.username}'}
             return Response(data, status=status.HTTP_201_CREATED)
 
+
 class PostTweetDisLike(APIView):
     def get(self, request, tweet_id):
         tweet = get_object_or_404(Tweet, id=tweet_id)
-        like = LikeTweet.objects.filter(tweet=tweet, user=request.user, like ='like')
-        if like:
-            data = {'message': f'tweet {tweet_id} already liked by {request.user.username}'}
-            return Response(data, status=status.HTTP_403_FORBIDDEN)
-        else:
+        try:
             dislike = DisLikeTweet.objects.create(tweet=tweet, user=request.user)
-            data = {'error': f'tweet {tweet_id} already disliked by {request.user.username}'}
-            return Response(data, status=status.HTTP_403_FORBIDDEN)
-        # else:
-        # data = {'message': f'tweet {tweet_id} disliked by {request.user.username}'}
-        return Response(data, status=status.HTTP_201_CREATED)
+        except IntegrityError:
+            DisLikeTweet.objects.get(tweet=tweet, user=request.user).delete()
+            data = {
+                'message': f'{request.user.username} already dislike from tweet {tweet_id} '
+            }
+            return Response(data, status=status.HTTP_201_CREATED)
+        else:
+            data = {
+                'message': f'tweet {tweet_id} disliked from {request.user.username}'
+            }
+            return Response(data, status=status.HTTP_201_CREATED)
 
 
 
